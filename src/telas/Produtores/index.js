@@ -1,0 +1,80 @@
+import {useNavigation, useRoute} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {FlatList, StyleSheet, Text} from 'react-native';
+import useProdutores from '../../hooks/useProdutores';
+import useTextos from '../../hooks/useTextos';
+import Produtor from './componentes/Produtor';
+import Topo from './componentes/Topo';
+
+export default function Produtores({melhoresProdutores}) {
+  const [exibeMensagem, setExibeMensagem] = useState(false);
+  const navigation = useNavigation();
+  const {params} = useRoute();
+  const nomeCompra = params?.compra.nome;
+  const timestampCompra = params?.compra.timestamp;
+
+  const lista = useProdutores(melhoresProdutores);
+  const {tituloProdutores, mensagemCompra} = useTextos();
+  const mensagemCompleta = mensagemCompra?.replace('$NOME', nomeCompra);
+
+  useEffect(() => {
+    setExibeMensagem(!!nomeCompra);
+
+    let timeout;
+
+    if (nomeCompra) {
+      timeout = setTimeout(() => {
+        setExibeMensagem(false);
+      }, 3000);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timestampCompra]);
+
+  const TopoLista = () => {
+    return (
+      <>
+        <Topo melhoresProdutores={melhoresProdutores} />
+        {exibeMensagem && (
+          <Text style={estilos.compra}>{mensagemCompleta}</Text>
+        )}
+        <Text style={estilos.titulo}>{tituloProdutores}</Text>
+      </>
+    );
+  };
+
+  return (
+    <FlatList
+      data={lista}
+      renderItem={({item}) => (
+        <Produtor
+          {...item}
+          aoPressionar={() => navigation.navigate('Produtor', item)}
+        />
+      )}
+      keyExtractor={({nome}) => nome}
+      ListHeaderComponent={TopoLista}
+      style={estilos.lista}
+    />
+  );
+}
+
+const estilos = StyleSheet.create({
+  lista: {
+    backgroundColor: '#ffffff',
+  },
+  titulo: {
+    fontSize: 20,
+    lineHeight: 32,
+    marginHorizontal: 16,
+    marginTop: 16,
+    fontWeight: 'bold',
+    color: '#464646',
+  },
+  compra: {
+    backgroundColor: '#EAF5F3',
+    padding: 16,
+    color: '#464646',
+    fontSize: 16,
+    lineHeight: 26,
+  },
+});
